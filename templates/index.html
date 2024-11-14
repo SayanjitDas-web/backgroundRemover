@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Background Removal Tool</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding: 50px;
+        }
+        #output {
+            margin-top: 20px;
+        }
+        #output img {
+            max-width: 100%;
+            height: auto;
+        }
+    </style>
+</head>
+<body>
+    <h1>Remove Background from Image</h1>
+    
+    <form id="upload-form">
+        <input placeholder="select photo" type="file" id="file-input" accept="image/*" required >
+        <br><br>
+        <button type="submit">Upload and Process</button>
+    </form>
+
+    <div id="output">
+        <!-- Processed image will appear here -->
+    </div>
+
+    <script>
+        const form = document.getElementById('upload-form');
+        const fileInput = document.getElementById('file-input');
+        const outputDiv = document.getElementById('output');
+
+        form.addEventListener('submit', async (event) => {
+            event.preventDefault();
+
+            // Check if a file was selected
+            if (fileInput.files.length === 0) {
+                alert("Please select a file.");
+                return;
+            }
+
+            const file = fileInput.files[0];
+
+            // Create FormData object to send the file
+            const formData = new FormData();
+            formData.append('file', file);
+
+            try {
+                // Send the file to the Flask API
+                const response = await fetch('/api/remove-bg', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (!response.ok) {
+                    throw new Error('Error processing the image');
+                }
+
+                // Get the blob of the processed image
+                const blob = await response.blob();
+                console.log(blob)
+                const imageUrl = URL.createObjectURL(blob);
+
+                // Display the processed image in the output div
+                outputDiv.innerHTML = `<h2>Processed Image</h2><img src="${imageUrl}" alt="Processed Image">`;
+
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Failed to process image.');
+            }
+        });
+    </script>
+</body>
+</html>
